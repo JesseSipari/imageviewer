@@ -1,6 +1,8 @@
 //gcc -Wall -Wextra -g -o  iv iv.c `sdl2-config --cflags --libs`
 //cat test-img.ppm | ./iv
-
+// TODO
+// Optimize to write values to the GPU memory instead of using SDL_Rect
+// P3 or P6 files? P6 = Binary, P3 = ASCII
 
 #include <stdio.h>
 #include <stdlib.h>

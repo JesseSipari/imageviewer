@@ -26,6 +26,10 @@ int main() {
         fgets(buffer, sizeof(buffer), in);
     } while (buffer[0] == '#');
 
+   if(SDL_Init(SDL_INIT_VIDEO) < 0) {
+       fprintf(stderr, "could not initialize SDL! SDL_Error: %s\n", SDL_GetError());
+       return 1;
+   }
 
     SDL_Window *pwindow = SDL_CreateWindow("Image Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0); 
     SDL_Surface *psurface = SDL_GetWindowSurface(pwindow);
@@ -57,4 +61,7 @@ int main() {
         }
         SDL_Delay(100);
     }
+    SDL_DestroyWindow(pwindow);
+    SDL_Quit();
+    return 0;
 }

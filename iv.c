@@ -8,8 +8,19 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 
-int main() {
+int main(int argc, char *argv[]) {
     FILE *in = stdin;
+    
+    if (argc > 1) {
+        // opens the file in rb. (read and binary)
+        in = fopen(argv[1], "rb"); 
+        
+        if(!in) {
+            fprintf(stderr, "Error: Couldn't open file '%s'.\n", argv[1]);
+            return 1;
+        }
+    }
+    
     char buffer[1000];
     // Read the first line (specifier P3 or P6 - ignore here)
     fgets(buffer, sizeof(buffer), in);
@@ -34,8 +45,18 @@ int main() {
    }
 
     SDL_Window *pwindow = SDL_CreateWindow("Image Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0); 
-    SDL_Surface *psurface = SDL_GetWindowSurface(pwindow);
+    if (!pwindow) {
+        fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
+        return 1;
+    }
 
+    SDL_Surface *psurface = SDL_GetWindowSurface(pwindow);
+    if(!psurface) {
+        fprintf(stderr, "Failed to get surface: %s\n", SDL_GetError());
+        SDL_DestroyWindow(pwindow);
+        return 1;
+    }
+    
     SDL_LockSurface(psurface);
 
     Uint32 *pixels = (Uint32 *)psurface->pixels;
@@ -43,9 +64,9 @@ int main() {
     for(int y=0; y<height; y++) {
         for(int x=0; x<width; x++) {
             Uint8 r, g, b;
-            r=(Uint8) getchar();
-            g=(Uint8) getchar();
-            b=(Uint8) getchar();
+            r=(Uint8) fgetc(in);
+            g=(Uint8) fgetc(in);
+            b=(Uint8) fgetc(in);
             
             pixels[(y * psurface->pitch / 4) + x] = SDL_MapRGB(psurface->format, r, g, b);
         }
@@ -65,5 +86,10 @@ int main() {
     }
     SDL_DestroyWindow(pwindow);
     SDL_Quit();
+    
+    if(in !=stdin) {
+        fclose(in);
+    }
+
     return 0;
 }

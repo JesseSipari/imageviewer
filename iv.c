@@ -1,8 +1,14 @@
 //gcc -Wall -Wextra -g -o  iv iv.c `sdl2-config --cflags --libs`
-//cat test-img.ppm | ./iv
-// TODO
-// Optimize to write values to the GPU memory instead of using SDL_Rect
-// P3 or P6 files? P6 = Binary, P3 = ASCII
+//cat test-img.ppm | ./iv OR ./iv test-img.ppm
+
+// TODO:
+//
+// [ ] GPU Acceleration: Switch from SDL_Surface to SDL_Renderer and SDL_Texture.
+// [ ] File reading optimization: Read P6 pixels as a single chunk using fread() instead of fgetc() (much faster).
+// [ ] P3 (ASCII) support: Check the first line to identify if the file is P3 or P6, and read pixels accordingly (fscanf vs fgetc/fread).
+// [ ] Robust parsing: The current method of skipping comments (#) is a bit fragile. Make the header parser more robust.
+// [ ] Window scaling: If the image resolution exceeds screen size (e.g., 4K), scale the window to fit.
+// [ ] Key bindings: Allow closing the application using the Esc or Q key (event.type == SDL_KEYDOWN).
 
 #include <stdio.h>
 #include <stdlib.h>

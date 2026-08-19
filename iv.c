@@ -4,11 +4,7 @@
 // TODO:
 //
 // [ ] GPU Acceleration: Switch from SDL_Surface to SDL_Renderer and SDL_Texture.
-// [ ] File reading optimization: Read P6 pixels as a single chunk using fread() instead of fgetc() (much faster).
-// [ ] P3 (ASCII) support: Check the first line to identify if the file is P3 or P6, and read pixels accordingly (fscanf vs fgetc/fread).
-// [x] Robust parsing: The current method of skipping comments (#) is a bit fragile. Make the header parser more robust.
 // [ ] Window scaling: If the image resolution exceeds screen size (e.g., 4K), scale the window to fit.
-// [x] Key bindings: Allow closing the application using the Esc or Q key (event.type == SDL_KEYDOWN).
 
 #include <stdio.h>
 #include <stdlib.h>

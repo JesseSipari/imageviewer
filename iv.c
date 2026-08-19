@@ -1,5 +1,5 @@
 //gcc -Wall -Wextra -g -o  iv iv.c `sdl2-config --cflags --libs`
-//cat test-img.ppm | ./iv OR ./iv test-img.ppm
+//cat <image.ppm> | ./iv OR ./iv <image.ppm>
 
 // TODO:
 //

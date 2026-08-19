@@ -6,9 +6,9 @@
 // [ ] GPU Acceleration: Switch from SDL_Surface to SDL_Renderer and SDL_Texture.
 // [ ] File reading optimization: Read P6 pixels as a single chunk using fread() instead of fgetc() (much faster).
 // [ ] P3 (ASCII) support: Check the first line to identify if the file is P3 or P6, and read pixels accordingly (fscanf vs fgetc/fread).
-// [ ] Robust parsing: The current method of skipping comments (#) is a bit fragile. Make the header parser more robust.
+// [x] Robust parsing: The current method of skipping comments (#) is a bit fragile. Make the header parser more robust.
 // [ ] Window scaling: If the image resolution exceeds screen size (e.g., 4K), scale the window to fit.
-// [ ] Key bindings: Allow closing the application using the Esc or Q key (event.type == SDL_KEYDOWN).
+// [x] Key bindings: Allow closing the application using the Esc or Q key (event.type == SDL_KEYDOWN).
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +26,7 @@ typedef struct {
 FILE* open_input(int argc, char *argv[]);
 static void skip_whitespace_and_comments(FILE *in);
 int read_ppm_header(FILE *in, PPMHeader *header);
-void read_ppm_pixels(FILE *in, SDL_Surface *surface, int width, int height);
+void read_ppm_pixels(FILE *in, SDL_Surface *surface, int width, int height, int is_p6);
 
 
 int main(int argc, char *argv[]) {
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     }
     
     SDL_LockSurface(psurface);
-    read_ppm_pixels(in, psurface, header.width, header.height);
+    read_ppm_pixels(in, psurface, header.width, header.height, header.is_p6);
     SDL_UnlockSurface(psurface);
 
     SDL_UpdateWindowSurface(pwindow);
@@ -119,8 +119,6 @@ static void skip_whitespace_and_comments(FILE *in) {
 }
 
 int read_ppm_header(FILE *in, PPMHeader *header) {
-    // TODO:
-    // Move and improve the parsing logic here
     char magic[3];
 
     // read the magic word (P3 or P6)
@@ -159,17 +157,45 @@ int read_ppm_header(FILE *in, PPMHeader *header) {
 
 }
 
-void read_ppm_pixels(FILE *in, SDL_Surface *surface, int width, int height) {
+void read_ppm_pixels(FILE *in, SDL_Surface *surface, int width, int height, int is_p6) {
   Uint32 *pixels = (Uint32 *)surface->pixels;
 
-    for(int y=0; y<height; y++) {
-        for(int x=0; x<width; x++) {
-            Uint8 r, g, b;
-            r=(Uint8) fgetc(in);
-            g=(Uint8) fgetc(in);
-            b=(Uint8) fgetc(in);
-            
-            pixels[(y * surface->pitch / 4) + x] = SDL_MapRGB(surface->format, r, g, b);
+    if (is_p6) {
+        // P6 binary format
+        int total_bytes = width * height * 3;
+        
+        // Allocate memory for the image
+        unsigned char *rgb_data = malloc(total_bytes);
+        if (!rgb_data) {
+            fprintf(stderr, "Failed to allocate memory.\n");
+            return;
+        }
+        
+        // read everything at once
+        fread(rgb_data, 1, total_bytes, in);
+    
+        int i = 0;
+        for(int y=0; y<height; y++) {
+            for(int x=0; x<width; x++) {
+                Uint8 r = rgb_data[i++];
+                Uint8 g = rgb_data[i++];
+                Uint8 b = rgb_data[i++];
+                pixels[(y * surface->pitch / 4) + x] = SDL_MapRGB(surface->format, r, g, b);
         }
     }   
+        // free the allocated memory
+        free(rgb_data);
+        
+    } else {
+        // P3: ASCII format
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int r, g, b;
+
+                if (fscanf(in, "%d %d %d", &r, &g, &b) == 3) {
+                    pixels[(y * surface->pitch / 4) + x] = SDL_MapRGB(surface->format, (Uint8)r, (Uint8)g, (Uint8)b);
+                }
+            }
+        }
+    }
 }
